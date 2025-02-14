@@ -1,0 +1,238 @@
+local Players = game:GetService("Players")
+local Teams = game:GetService("Teams")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local ESPEnabled = false
+local AimbotEnabled = false
+local NoclipEnabled = false
+local AntiStaffEnabled = false
+local currentTarget = nil
+
+-- Menu GUI
+local ScreenGui = Instance.new("ScreenGui")
+local Frame = Instance.new("ImageLabel")
+local OpenCloseButton = Instance.new("TextButton")
+local ESPButton = Instance.new("TextButton")
+local AimbotButton = Instance.new("TextButton")
+local NoclipButton = Instance.new("TextButton")
+local AntiStaffButton = Instance.new("TextButton")
+
+-- Rounded corners
+local UICorner = Instance.new("UICorner")
+
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+Frame.Parent = ScreenGui
+Frame.BackgroundColor3 = Color3.fromRGB(173, 216, 230) -- Azul claro
+Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Frame.Position = UDim2.new(0, 10, 0, 10)
+Frame.Size = UDim2.new(0, 200, 0, 350)
+Frame.Image = "rbxassetid://1234567890" -- Round frame image
+
+UICorner.Parent = Frame
+UICorner.CornerRadius = UDim.new(1, 0) -- Para deixar o menu redondo
+
+OpenCloseButton.Parent = ScreenGui
+OpenCloseButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Preto
+OpenCloseButton.Position = UDim2.new(0, 10, 0, 10)
+OpenCloseButton.Size = UDim2.new(0, 50, 0, 50)
+OpenCloseButton.Text = "Menu"
+
+UICorner:Clone().Parent = OpenCloseButton
+UICorner.CornerRadius = UDim.new(0.5, 0) -- Para deixar o botão redondo
+
+ESPButton.Parent = Frame
+ESPButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Preto
+ESPButton.Size = UDim2.new(0, 180, 0, 50)
+ESPButton.Position = UDim2.new(0, 10, 0, 70)
+ESPButton.Text = "ESP: OFF"
+
+UICorner:Clone().Parent = ESPButton
+UICorner.CornerRadius = UDim.new(0.25, 0) -- Canto arredondado dos botões
+
+AimbotButton.Parent = Frame
+AimbotButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Preto
+AimbotButton.Size = UDim2.new(0, 180, 0, 50)
+AimbotButton.Position = UDim2.new(0, 10, 0, 130)
+AimbotButton.Text = "Aimbot: OFF"
+
+UICorner:Clone().Parent = AimbotButton
+UICorner.CornerRadius = UDim.new(0.25, 0) -- Canto arredondado dos botões
+
+NoclipButton.Parent = Frame
+NoclipButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Preto
+NoclipButton.Size = UDim2.new(0, 180, 0, 50)
+NoclipButton.Position = UDim2.new(0, 10, 0, 190)
+NoclipButton.Text = "Noclip: OFF"
+
+UICorner:Clone().Parent = NoclipButton
+UICorner.CornerRadius = UDim.new(0.25, 0) -- Canto arredondado dos botões
+
+AntiStaffButton.Parent = Frame
+AntiStaffButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- Preto
+AntiStaffButton.Size = UDim2.new(0, 180, 0, 50)
+AntiStaffButton.Position = UDim2.new(0, 10, 0, 250)
+AntiStaffButton.Text = "AntiStaff: OFF"
+
+UICorner:Clone().Parent = AntiStaffButton
+UICorner.CornerRadius = UDim.new(0.25, 0) -- Canto arredondado dos botões
+
+local menuVisible = true
+
+OpenCloseButton.MouseButton1Click:Connect(function()
+    menuVisible = not menuVisible
+    Frame.Visible = menuVisible
+end)
+
+-- Dragging functionality
+local dragging = false
+local dragInput, mousePos, framePos
+
+OpenCloseButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = OpenCloseButton.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+OpenCloseButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        OpenCloseButton.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
+end)
+
+-- ESP Functionality
+ESPButton.MouseButton1Click:Connect(function()
+    ESPEnabled = not ESPEnabled
+    ESPButton.Text = "ESP: " .. (ESPEnabled and "ON" or "OFF")
+    if ESPEnabled then
+        EnableESP()
+    else
+        DisableESP()
+    end
+end)
+
+-- Aimbot Functionality
+AimbotButton.MouseButton1Click:Connect(function()
+    AimbotEnabled = not AimbotEnabled
+    AimbotButton.Text = "Aimbot: " .. (AimbotEnabled and "ON" or "OFF")
+    if AimbotEnabled then
+        EnableAimbot()
+    else
+        DisableAimbot()
+    end
+end)
+
+-- Noclip Functionality
+NoclipButton.MouseButton1Click:Connect(function()
+    NoclipEnabled = not NoclipEnabled
+    NoclipButton.Text = "Noclip: " .. (NoclipEnabled and "ON" or "OFF")
+    if NoclipEnabled then
+        EnableNoclip()
+    else
+        DisableNoclip()
+    end
+end)
+
+-- AntiStaff Functionality
+AntiStaffButton.MouseButton1Click:Connect(function()
+    AntiStaffEnabled = not AntiStaffEnabled
+    AntiStaffButton.Text = "AntiStaff: " .. (AntiStaffEnabled and "ON" or "OFF")
+    if AntiStaffEnabled then
+        EnableAntiStaff()
+    else
+        DisableAntiStaff()
+    end
+end)
+
+-- ESP Logic
+function EnableESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer then
+            AddESP(player)
+        end
+    end
+
+    Players.PlayerAdded:Connect(function(player)
+        if ESPEnabled then
+            AddESP(player)
+        end
+    end)
+end
+
+function DisableESP()
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer and player.Character:FindFirstChild("Highlight") then
+            player.Character.Highlight:Destroy()
+        end
+    end
+end
+
+function AddESP(player)
+    local highlight = Instance.new("Highlight")
+    highlight.Parent = player.Character
+    highlight.Adornee = player.Character
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0.5
+end
+
+-- Aimbot Logic
+function EnableAimbot()
+    RunService.RenderStepped:Connect(function()
+        if AimbotEnabled then
+            local camera = workspace.CurrentCamera
+            local closestPlayer = nil
+            local shortestDistance = math.huge
+
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= Players.LocalPlayer then
+                    local character = player.Character
+                    if character and character:FindFirstChild("Head") then
+                        local screenPos, onScreen = camera:WorldToViewportPoint(character.Head.Position)
+                        if onScreen then
+                            local distance = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)).Magnitude
+                            if distance < shortestDistance then
+                                closestPlayer = player
+                                shortestDistance = distance
+                            end
+                        end
+                    end
+                end
+            end
+
+            if closestPlayer and closestPlayer.Character and closestPlayer.Character:FindFirstChild("Head") then
+                camera.CFrame = CFrame.new(camera.CFrame.Position, closestPlayer.Character.Head.Position)
+                currentTarget = closestPlayer
+            end
+        end
+    end)
+end
+
+function DisableAimbot()
+    -- Implement Aimbot disable logic
+end
+
+-- Noclip Logic
+function EnableNoclip()
+    RunService.Stepped:Connect(function()
+        if NoclipEnabled then
+            for _, part in pairs(Players.LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
