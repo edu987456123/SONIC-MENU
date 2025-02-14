@@ -148,17 +148,6 @@ NoclipButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- AntiStaff Functionality
-AntiStaffButton.MouseButton1Click:Connect(function()
-    AntiStaffEnabled = not AntiStaffEnabled
-    AntiStaffButton.Text = "AntiStaff: " .. (AntiStaffEnabled and "ON" or "OFF")
-    if AntiStaffEnabled then
-        EnableAntiStaff()
-    else
-        DisableAntiStaff()
-    end
-end)
-
 -- ESP Logic
 function EnableESP()
     for _, player in pairs(Players:GetPlayers()) do
